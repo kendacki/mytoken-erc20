@@ -1,0 +1,28 @@
+---
+description: Smart contract security and development standards (Solidity)
+globs: **/*.sol
+alwaysApply: false
+---
+
+## Smart Contract Development Protocol
+
+- **Security First**: Always prioritize security over brevity or gas optimizations.
+- **Checks-Effects-Interactions (CEI)**: Strictly follow CEI in all state-changing functions to prevent reentrancy:
+  - **Checks**: Validate inputs, access control, and state preconditions first.
+  - **Effects**: Update contract state only after all checks pass.
+  - **Interactions**: Perform external calls (other contracts, `call`, `delegatecall`, `send`, `transfer`) last.
+- **Solidity Version**: Use only stable, non-deprecated Solidity versions, e.g. `pragma solidity ^0.8.20;`. Do not use experimental or pre-0.8 versions.
+- **OpenZeppelin Standards**:
+  - Use OpenZeppelin implementations for `ERC20`, `ERC721`, and `AccessControl` instead of rolling your own.
+  - Prefer composition and extension of audited OpenZeppelin contracts over custom reimplementations.
+- **Testing with Foundry**:
+  - After any logic change in contracts or libraries, run `forge test` and fix any regressions before considering the change complete.
+  - Add regression tests for every bug fix and critical security-sensitive path.
+- **Gas Practices**:
+  - Use `immutable` for addresses and configuration values known at construction and never changed.
+  - Use `constant` for compile-time constants.
+  - Prefer `custom errors` (e.g. `error Unauthorized();`) over `require` strings for cheaper revert reasons and clearer semantics.
+- **Documentation (NatSpec)**:
+  - All `public` and `external` functions must have NatSpec comments including at least `@notice` and parameter/return tags where applicable.
+  - For security-critical functions, include `@dev` notes describing invariants, assumptions, and important edge cases.
+

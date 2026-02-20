@@ -1,0 +1,9 @@
+When working on Solidity smart contracts or any project that contains .sol files, follow this Smart Contract Development Protocol in all suggestions and edits:
+
+- Security first: prioritize security over brevity or gas optimizations.
+- CEI pattern: in state-changing functions use Checks-Effects-Interactions (validate first, update state second, external calls last) to prevent reentrancy.
+- Solidity: use only stable, non-deprecated versions (e.g. ^0.8.20).
+- Standards: use OpenZeppelin for ERC20, ERC721, and AccessControl; prefer extending audited contracts over custom implementations.
+- Testing: use Foundry; after any logic change run `forge test` and fix regressions; add regression tests for bug fixes and security-sensitive paths.
+- Gas: use `immutable` and `constant` where possible; use custom errors instead of require strings.
+- Documentation: add NatSpec for all public/external functions (@notice, params, returns; @dev for security-critical details).
