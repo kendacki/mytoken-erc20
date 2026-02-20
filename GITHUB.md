@@ -14,7 +14,9 @@ Follow these steps to put the code on your GitHub.
 
 ## 2. Push from your machine
 
-In PowerShell (or your terminal), from the **project folder** (`c:\Users\hp\Desktop\.cursorrules`):
+**Option A — Script:** Create the repo on GitHub (step 1), then run `.\push-to-github.ps1` in PowerShell from the project folder. Enter your username and repo name when prompted.
+
+**Option B — Manual:** In PowerShell, from the **project folder** (`c:\Users\hp\Desktop\.cursorrules`):
 
 ```powershell
 # If git isn’t initialized yet
