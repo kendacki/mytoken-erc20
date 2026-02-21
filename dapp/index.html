@@ -76,9 +76,56 @@
         </article>
       </section>
 
+      <section class="grid-two">
+        <article class="card">
+          <h2>Approve Allowance</h2>
+          <label>
+            Spender address
+            <input id="spenderInput" type="text" placeholder="0x..." />
+          </label>
+          <label>
+            Amount (MTK)
+            <input id="approveAmountInput" type="text" placeholder="500" />
+          </label>
+          <div class="actions-row">
+            <button id="approveBtn" class="btn btn-primary">Approve</button>
+            <button id="checkAllowanceBtn" class="btn btn-secondary">Check Allowance</button>
+          </div>
+          <p class="muted">Current allowance: <span id="allowanceValue">-</span> <span id="tokenSymbol3">MTK</span></p>
+        </article>
+
+        <article class="card">
+          <h2>Transfer From</h2>
+          <p class="muted">Requires prior approval from the <strong>From</strong> address to your connected wallet.</p>
+          <label>
+            From address
+            <input id="fromInput" type="text" placeholder="0x..." />
+          </label>
+          <label>
+            To address
+            <input id="toInput" type="text" placeholder="0x..." />
+          </label>
+          <label>
+            Amount (MTK)
+            <input id="transferFromAmountInput" type="text" placeholder="50" />
+          </label>
+          <button id="transferFromBtn" class="btn btn-primary full">Transfer From</button>
+        </article>
+      </section>
+
       <section class="card">
         <h2>Activity</h2>
         <pre id="log">Ready. Connect wallet to begin.</pre>
+      </section>
+
+      <section class="card">
+        <div class="events-header">
+          <h2>Recent On-chain Events</h2>
+          <button id="refreshEventsBtn" class="btn btn-secondary">Refresh Events</button>
+        </div>
+        <ul id="eventsList" class="events-list">
+          <li>No events loaded yet.</li>
+        </ul>
       </section>
     </main>
 

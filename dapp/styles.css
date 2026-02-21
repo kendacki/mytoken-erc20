@@ -147,6 +147,12 @@ body {
   width: 100%;
 }
 
+.actions-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .status-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -229,6 +235,24 @@ pre {
   max-height: 260px;
   overflow: auto;
   color: #d1d5db;
+}
+
+.events-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.events-list {
+  margin: 8px 0 0;
+  padding-left: 18px;
+}
+
+.events-list li {
+  margin: 8px 0;
+  color: #cbd5e1;
+  line-height: 1.35;
 }
 
 @media (max-width: 900px) {

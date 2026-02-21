@@ -19,14 +19,23 @@ const ABI = [
   "function balanceOf(address owner) view returns (uint256)",
   "function totalSupply() view returns (uint256)",
   "function transfer(address to, uint256 amount) returns (bool)",
+  "function approve(address spender, uint256 amount) returns (bool)",
+  "function allowance(address owner, address spender) view returns (uint256)",
+  "function transferFrom(address from, address to, uint256 amount) returns (bool)",
   "function decimals() view returns (uint8)",
   "function symbol() view returns (string)",
+  "event Transfer(address indexed from, address indexed to, uint256 value)",
+  "event Approval(address indexed owner, address indexed spender, uint256 value)",
 ];
 
 const connectBtn = document.getElementById("connectBtn");
 const disconnectBtn = document.getElementById("disconnectBtn");
 const refreshBtn = document.getElementById("refreshBtn");
 const transferBtn = document.getElementById("transferBtn");
+const approveBtn = document.getElementById("approveBtn");
+const checkAllowanceBtn = document.getElementById("checkAllowanceBtn");
+const transferFromBtn = document.getElementById("transferFromBtn");
+const refreshEventsBtn = document.getElementById("refreshEventsBtn");
 const connectionPillEl = document.getElementById("connectionPill");
 const walletEl = document.getElementById("wallet");
 const networkEl = document.getElementById("network");
@@ -34,8 +43,16 @@ const myBalanceEl = document.getElementById("myBalance");
 const totalSupplyEl = document.getElementById("totalSupply");
 const tokenSymbolEl = document.getElementById("tokenSymbol");
 const tokenSymbolEl2 = document.getElementById("tokenSymbol2");
+const tokenSymbolEl3 = document.getElementById("tokenSymbol3");
 const recipientInput = document.getElementById("recipientInput");
 const amountInput = document.getElementById("amountInput");
+const spenderInput = document.getElementById("spenderInput");
+const approveAmountInput = document.getElementById("approveAmountInput");
+const allowanceValueEl = document.getElementById("allowanceValue");
+const fromInput = document.getElementById("fromInput");
+const toInput = document.getElementById("toInput");
+const transferFromAmountInput = document.getElementById("transferFromAmountInput");
+const eventsListEl = document.getElementById("eventsList");
 const logEl = document.getElementById("log");
 const contractAddressEl = document.getElementById("contractAddress");
 const explorerLinkEl = document.getElementById("explorerLink");
@@ -58,6 +75,10 @@ function log(message) {
 
 function shortAddress(addr) {
   return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+}
+
+function formatAddr(addr) {
+  return `${shortAddress(addr)} (${addr})`;
 }
 
 function setConnectionState(connected) {
@@ -85,6 +106,8 @@ function clearSessionState() {
   networkEl.textContent = "Unknown";
   myBalanceEl.textContent = "-";
   totalSupplyEl.textContent = "-";
+  allowanceValueEl.textContent = "-";
+  eventsListEl.innerHTML = "<li>No events loaded yet.</li>";
 }
 
 async function ensureMetaMask() {
@@ -166,10 +189,12 @@ async function initWalletSession(requestAccountAccess) {
   symbol = await contract.symbol();
   tokenSymbolEl.textContent = symbol;
   tokenSymbolEl2.textContent = symbol;
+  tokenSymbolEl3.textContent = symbol;
 
   walletEl.textContent = `${shortAddress(account)} (${account})`;
   setConnectionState(true);
   await refreshInfo();
+  await loadRecentEvents();
   return true;
 }
 
@@ -223,8 +248,125 @@ async function transferTokens() {
     log("Transfer confirmed.");
 
     await refreshInfo();
+    await loadRecentEvents();
   } catch (error) {
     log(`Transfer failed: ${error.message}`);
+  }
+}
+
+async function approveTokens() {
+  if (!contract) {
+    log("Connect wallet first.");
+    return;
+  }
+  try {
+    await ensureSepolia();
+    const spender = spenderInput.value.trim();
+    const amount = approveAmountInput.value.trim();
+
+    if (!ethers.isAddress(spender)) {
+      throw new Error("Spender address is invalid.");
+    }
+    if (!amount || Number(amount) < 0) {
+      throw new Error("Amount must be 0 or greater.");
+    }
+
+    const parsedAmount = ethers.parseUnits(amount, decimals);
+    log(`Approving ${amount} ${symbol} for ${shortAddress(spender)}...`);
+    const tx = await contract.approve(spender, parsedAmount);
+    log(`Approval tx submitted: ${tx.hash}`);
+    await tx.wait();
+    log("Approval confirmed.");
+    await checkAllowance();
+    await loadRecentEvents();
+  } catch (error) {
+    log(`Approve failed: ${error.message}`);
+  }
+}
+
+async function checkAllowance() {
+  if (!contract || !account) {
+    log("Connect wallet first.");
+    return;
+  }
+  try {
+    const spender = spenderInput.value.trim();
+    if (!ethers.isAddress(spender)) {
+      throw new Error("Enter a valid spender address first.");
+    }
+    const allowanceRaw = await contract.allowance(account, spender);
+    allowanceValueEl.textContent = ethers.formatUnits(allowanceRaw, decimals);
+    log(`Allowance loaded for spender ${shortAddress(spender)}.`);
+  } catch (error) {
+    log(`Allowance check failed: ${error.message}`);
+  }
+}
+
+async function transferFromTokens() {
+  if (!contract) {
+    log("Connect wallet first.");
+    return;
+  }
+  try {
+    await ensureSepolia();
+    const from = fromInput.value.trim();
+    const to = toInput.value.trim();
+    const amount = transferFromAmountInput.value.trim();
+
+    if (!ethers.isAddress(from)) {
+      throw new Error("From address is invalid.");
+    }
+    if (!ethers.isAddress(to)) {
+      throw new Error("To address is invalid.");
+    }
+    if (!amount || Number(amount) <= 0) {
+      throw new Error("Amount must be greater than 0.");
+    }
+
+    const parsedAmount = ethers.parseUnits(amount, decimals);
+    log(`Calling transferFrom(${shortAddress(from)} -> ${shortAddress(to)}) for ${amount} ${symbol}...`);
+    const tx = await contract.transferFrom(from, to, parsedAmount);
+    log(`transferFrom tx submitted: ${tx.hash}`);
+    await tx.wait();
+    log("transferFrom confirmed.");
+    await refreshInfo();
+    await loadRecentEvents();
+  } catch (error) {
+    log(`transferFrom failed: ${error.message}`);
+  }
+}
+
+async function loadRecentEvents() {
+  if (!contract || !provider) {
+    return;
+  }
+  try {
+    const latestBlock = await provider.getBlockNumber();
+    const fromBlock = Math.max(latestBlock - 5000, 0);
+    const transferEvents = await contract.queryFilter(contract.filters.Transfer(), fromBlock, latestBlock);
+    const approvalEvents = await contract.queryFilter(contract.filters.Approval(), fromBlock, latestBlock);
+    const merged = [...transferEvents, ...approvalEvents]
+      .sort((a, b) => (b.blockNumber - a.blockNumber) || (b.logIndex - a.logIndex))
+      .slice(0, 8);
+
+    if (!merged.length) {
+      eventsListEl.innerHTML = "<li>No recent Transfer/Approval events found.</li>";
+      return;
+    }
+
+    eventsListEl.innerHTML = merged
+      .map((evt) => {
+        if (evt.fragment?.name === "Transfer") {
+          const value = ethers.formatUnits(evt.args.value, decimals);
+          return `<li><strong>Transfer</strong>: ${value} ${symbol} from ${formatAddr(evt.args.from)} to ${formatAddr(evt.args.to)} <span class="muted">(block ${evt.blockNumber})</span></li>`;
+        }
+        const value = ethers.formatUnits(evt.args.value, decimals);
+        return `<li><strong>Approval</strong>: ${value} ${symbol} owner ${formatAddr(evt.args.owner)} -> spender ${formatAddr(evt.args.spender)} <span class="muted">(block ${evt.blockNumber})</span></li>`;
+      })
+      .join("");
+  } catch (error) {
+    eventsListEl.innerHTML = "<li>Could not load events right now.</li>";
+    log(`Events load failed: ${error.message}`);
   }
 }
 
@@ -232,6 +374,10 @@ connectBtn.addEventListener("click", connectWallet);
 disconnectBtn.addEventListener("click", disconnectWallet);
 refreshBtn.addEventListener("click", refreshInfo);
 transferBtn.addEventListener("click", transferTokens);
+approveBtn.addEventListener("click", approveTokens);
+checkAllowanceBtn.addEventListener("click", checkAllowance);
+transferFromBtn.addEventListener("click", transferFromTokens);
+refreshEventsBtn.addEventListener("click", loadRecentEvents);
 
 if (window.ethereum) {
   window.ethereum.on("accountsChanged", () => {
