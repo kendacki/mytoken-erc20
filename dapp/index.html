@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MyToken Sepolia dApp</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="bg-glow bg-glow-left"></div>
+    <div class="bg-glow bg-glow-right"></div>
+
+    <main class="container">
+      <header class="hero card">
+        <div>
+          <p class="eyebrow">Live on Sepolia</p>
+          <h1>MyToken Control Panel</h1>
+          <p class="sub">
+            Connect MetaMask, read token stats, and transfer MTK from a polished frontend.
+          </p>
+        </div>
+        <div class="hero-actions">
+          <button id="connectBtn" class="btn btn-primary">Connect MetaMask</button>
+          <button id="refreshBtn" class="btn btn-secondary">Refresh</button>
+        </div>
+      </header>
+
+      <section class="status-grid">
+        <article class="card stat">
+          <p class="label">Wallet</p>
+          <p id="wallet" class="value">Not connected</p>
+        </article>
+        <article class="card stat">
+          <p class="label">Network</p>
+          <p id="network" class="value">Unknown</p>
+        </article>
+        <article class="card stat">
+          <p class="label">Your Balance</p>
+          <p class="value"><span id="myBalance">-</span> <span id="tokenSymbol">MTK</span></p>
+        </article>
+        <article class="card stat">
+          <p class="label">Total Supply</p>
+          <p class="value"><span id="totalSupply">-</span> <span id="tokenSymbol2">MTK</span></p>
+        </article>
+      </section>
+
+      <section class="grid-two">
+        <article class="card">
+          <h2>Contract</h2>
+          <p class="muted">Connected token contract:</p>
+          <p class="mono" id="contractAddress"></p>
+          <a
+            id="explorerLink"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="explorer-link"
+            href="#"
+          >
+            View on Sepolia Etherscan
+          </a>
+        </article>
+
+        <article class="card">
+          <h2>Transfer MTK</h2>
+          <label>
+            Recipient address
+            <input id="recipientInput" type="text" placeholder="0x..." />
+          </label>
+          <label>
+            Amount (MTK)
+            <input id="amountInput" type="text" placeholder="10.5" />
+          </label>
+          <button id="transferBtn" class="btn btn-primary full">Send Tokens</button>
+        </article>
+      </section>
+
+      <section class="card">
+        <h2>Activity</h2>
+        <pre id="log">Ready. Connect wallet to begin.</pre>
+      </section>
+    </main>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
