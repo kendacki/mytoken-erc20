@@ -24,6 +24,7 @@ const ABI = [
 ];
 
 const connectBtn = document.getElementById("connectBtn");
+const disconnectBtn = document.getElementById("disconnectBtn");
 const refreshBtn = document.getElementById("refreshBtn");
 const transferBtn = document.getElementById("transferBtn");
 const connectionPillEl = document.getElementById("connectionPill");
@@ -38,6 +39,7 @@ const amountInput = document.getElementById("amountInput");
 const logEl = document.getElementById("log");
 const contractAddressEl = document.getElementById("contractAddress");
 const explorerLinkEl = document.getElementById("explorerLink");
+const MANUAL_DISCONNECT_KEY = "mtk_manual_disconnect";
 
 contractAddressEl.textContent = CONTRACT_ADDRESS;
 explorerLinkEl.href = `https://sepolia.etherscan.io/address/${CONTRACT_ADDRESS}`;
@@ -64,12 +66,25 @@ function setConnectionState(connected) {
     connectionPillEl.classList.add("connected");
     connectionPillEl.classList.remove("disconnected");
     connectBtn.textContent = "Wallet Connected";
+    disconnectBtn.disabled = false;
   } else {
     connectionPillEl.textContent = "Not connected";
     connectionPillEl.classList.add("disconnected");
     connectionPillEl.classList.remove("connected");
     connectBtn.textContent = "Connect MetaMask";
+    disconnectBtn.disabled = true;
   }
+}
+
+function clearSessionState() {
+  provider = undefined;
+  signer = undefined;
+  contract = undefined;
+  account = undefined;
+  walletEl.textContent = "Not connected";
+  networkEl.textContent = "Unknown";
+  myBalanceEl.textContent = "-";
+  totalSupplyEl.textContent = "-";
 }
 
 async function ensureMetaMask() {
@@ -112,11 +127,19 @@ async function ensureSepolia() {
 async function connectWallet() {
   try {
     await initWalletSession(true);
+    localStorage.removeItem(MANUAL_DISCONNECT_KEY);
     log("Wallet connected successfully.");
   } catch (error) {
     setConnectionState(false);
     log(`Connect failed: ${error.message}`);
   }
+}
+
+function disconnectWallet() {
+  clearSessionState();
+  setConnectionState(false);
+  localStorage.setItem(MANUAL_DISCONNECT_KEY, "1");
+  log("Wallet disconnected for this app session.");
 }
 
 async function initWalletSession(requestAccountAccess) {
@@ -206,6 +229,7 @@ async function transferTokens() {
 }
 
 connectBtn.addEventListener("click", connectWallet);
+disconnectBtn.addEventListener("click", disconnectWallet);
 refreshBtn.addEventListener("click", refreshInfo);
 transferBtn.addEventListener("click", transferTokens);
 
@@ -224,7 +248,9 @@ if (window.ethereum) {
 }
 
 if (window.ethereum) {
-  initWalletSession(false)
+  const manuallyDisconnected = localStorage.getItem(MANUAL_DISCONNECT_KEY) === "1";
+  if (!manuallyDisconnected) {
+    initWalletSession(false)
     .then((connected) => {
       if (connected) {
         log("Auto-reconnected wallet session.");
@@ -233,4 +259,7 @@ if (window.ethereum) {
     .catch(() => {
       setConnectionState(false);
     });
+  } else {
+    setConnectionState(false);
+  }
 }
