@@ -53,12 +53,14 @@ body {
 }
 
 .card {
-  background: linear-gradient(180deg, rgba(17, 24, 39, 0.94) 0%, rgba(10, 14, 24, 0.96) 100%);
-  border: 1px solid var(--border);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.52), rgba(255, 255, 255, 0.28));
+  border: 1px solid rgba(255, 255, 255, 0.72);
   border-radius: 16px;
   padding: 16px;
   margin: 12px 0;
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.32);
+  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.12);
+  backdrop-filter: blur(14px) saturate(150%);
+  -webkit-backdrop-filter: blur(14px) saturate(150%);
 }
 
 .hero {
@@ -100,21 +102,23 @@ body {
   padding: 8px 12px;
   font-size: 0.82rem;
   font-weight: 700;
-  border: 1px solid #374151;
-  background: #111827;
-  color: #cbd5e1;
+  border: 1px solid rgba(148, 163, 184, 0.55);
+  background: rgba(255, 255, 255, 0.56);
+  color: #0f172a;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .connection-pill.connected {
   background: rgba(34, 197, 94, 0.14);
   border-color: rgba(34, 197, 94, 0.48);
-  color: #86efac;
+  color: #166534;
 }
 
 .connection-pill.disconnected {
   background: rgba(239, 68, 68, 0.12);
   border-color: rgba(239, 68, 68, 0.4);
-  color: #fca5a5;
+  color: #991b1b;
 }
 
 .btn {
@@ -140,9 +144,9 @@ body {
 }
 
 .btn-secondary {
-  background: #1f2937;
-  color: #e5e7eb;
-  border: 1px solid #374151;
+  background: rgba(255, 255, 255, 0.62);
+  color: #0f172a;
+  border: 1px solid rgba(148, 163, 184, 0.55);
 }
 
 .full {
@@ -192,7 +196,7 @@ h2 {
   margin: 0 0 10px;
   font-family: Consolas, Menlo, monospace;
   word-break: break-all;
-  color: #cbd5e1;
+  color: #334155;
 }
 
 .explorer-link {
@@ -208,7 +212,7 @@ label {
   display: block;
   margin: 10px 0;
   font-size: 0.92rem;
-  color: #cbd5e1;
+  color: #334155;
 }
 
 input {
@@ -216,9 +220,9 @@ input {
   margin-top: 6px;
   padding: 10px;
   border-radius: 10px;
-  border: 1px solid #334155;
-  background: #0a1220;
-  color: #e2e8f0;
+  border: 1px solid rgba(148, 163, 184, 0.55);
+  background: rgba(255, 255, 255, 0.68);
+  color: #0f172a;
 }
 
 input:focus {
@@ -229,14 +233,16 @@ input:focus {
 pre {
   white-space: pre-wrap;
   word-break: break-word;
-  background: #020617;
-  border: 1px solid #1f2937;
+  background: rgba(255, 255, 255, 0.62);
+  border: 1px solid rgba(148, 163, 184, 0.55);
   border-radius: 10px;
   padding: 12px;
   min-height: 120px;
   max-height: 260px;
   overflow: auto;
-  color: #d1d5db;
+  color: #0f172a;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .events-header {
@@ -253,7 +259,7 @@ pre {
 
 .events-list li {
   margin: 8px 0;
-  color: #cbd5e1;
+  color: #334155;
   line-height: 1.35;
 }
 
