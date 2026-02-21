@@ -111,30 +111,43 @@ async function ensureSepolia() {
 
 async function connectWallet() {
   try {
-    await ensureMetaMask();
-
-    provider = new ethers.BrowserProvider(window.ethereum);
-    await switchOrAddSepolia();
-    await provider.send("eth_requestAccounts", []);
-    await ensureSepolia();
-    signer = await provider.getSigner();
-    account = await signer.getAddress();
-
-    contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
-    decimals = Number(await contract.decimals());
-    symbol = await contract.symbol();
-    tokenSymbolEl.textContent = symbol;
-    tokenSymbolEl2.textContent = symbol;
-
-    walletEl.textContent = `${shortAddress(account)} (${account})`;
-    setConnectionState(true);
-
-    await refreshInfo();
+    await initWalletSession(true);
     log("Wallet connected successfully.");
   } catch (error) {
     setConnectionState(false);
     log(`Connect failed: ${error.message}`);
   }
+}
+
+async function initWalletSession(requestAccountAccess) {
+  await ensureMetaMask();
+
+  provider = new ethers.BrowserProvider(window.ethereum);
+  if (requestAccountAccess) {
+    await switchOrAddSepolia();
+    await provider.send("eth_requestAccounts", []);
+  } else {
+    const existingAccounts = await provider.send("eth_accounts", []);
+    if (!existingAccounts.length) {
+      setConnectionState(false);
+      return false;
+    }
+  }
+
+  await ensureSepolia();
+  signer = await provider.getSigner();
+  account = await signer.getAddress();
+
+  contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+  decimals = Number(await contract.decimals());
+  symbol = await contract.symbol();
+  tokenSymbolEl.textContent = symbol;
+  tokenSymbolEl2.textContent = symbol;
+
+  walletEl.textContent = `${shortAddress(account)} (${account})`;
+  setConnectionState(true);
+  await refreshInfo();
+  return true;
 }
 
 async function refreshInfo() {
@@ -208,4 +221,16 @@ if (window.ethereum) {
     networkEl.textContent = "Unknown";
     setConnectionState(false);
   });
+}
+
+if (window.ethereum) {
+  initWalletSession(false)
+    .then((connected) => {
+      if (connected) {
+        log("Auto-reconnected wallet session.");
+      }
+    })
+    .catch(() => {
+      setConnectionState(false);
+    });
 }
