@@ -2,6 +2,18 @@ import { ethers } from "https://cdn.jsdelivr.net/npm/ethers@6.13.4/+esm";
 
 const CONTRACT_ADDRESS = "0x5D999ea3B5Ee6248eE80eB2Ae2b671bEbA8C561b";
 const SEPOLIA_CHAIN_ID = 11155111;
+const SEPOLIA_CHAIN_ID_HEX = "0xaa36a7";
+const SEPOLIA_NETWORK_PARAMS = {
+  chainId: SEPOLIA_CHAIN_ID_HEX,
+  chainName: "Sepolia",
+  nativeCurrency: {
+    name: "Sepolia ETH",
+    symbol: "ETH",
+    decimals: 18,
+  },
+  rpcUrls: ["https://rpc.sepolia.org"],
+  blockExplorerUrls: ["https://sepolia.etherscan.io"],
+};
 
 const ABI = [
   "function balanceOf(address owner) view returns (uint256)",
@@ -14,6 +26,7 @@ const ABI = [
 const connectBtn = document.getElementById("connectBtn");
 const refreshBtn = document.getElementById("refreshBtn");
 const transferBtn = document.getElementById("transferBtn");
+const connectionPillEl = document.getElementById("connectionPill");
 const walletEl = document.getElementById("wallet");
 const networkEl = document.getElementById("network");
 const myBalanceEl = document.getElementById("myBalance");
@@ -45,9 +58,41 @@ function shortAddress(addr) {
   return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
 }
 
+function setConnectionState(connected) {
+  if (connected) {
+    connectionPillEl.textContent = "Connected";
+    connectionPillEl.classList.add("connected");
+    connectionPillEl.classList.remove("disconnected");
+    connectBtn.textContent = "Wallet Connected";
+  } else {
+    connectionPillEl.textContent = "Not connected";
+    connectionPillEl.classList.add("disconnected");
+    connectionPillEl.classList.remove("connected");
+    connectBtn.textContent = "Connect MetaMask";
+  }
+}
+
 async function ensureMetaMask() {
   if (!window.ethereum) {
     throw new Error("MetaMask not found. Please install MetaMask.");
+  }
+}
+
+async function switchOrAddSepolia() {
+  try {
+    await window.ethereum.request({
+      method: "wallet_switchEthereumChain",
+      params: [{ chainId: SEPOLIA_CHAIN_ID_HEX }],
+    });
+  } catch (error) {
+    if (error.code === 4902) {
+      await window.ethereum.request({
+        method: "wallet_addEthereumChain",
+        params: [SEPOLIA_NETWORK_PARAMS],
+      });
+    } else {
+      throw error;
+    }
   }
 }
 
@@ -55,7 +100,12 @@ async function ensureSepolia() {
   const network = await provider.getNetwork();
   networkEl.textContent = `${network.name} (${network.chainId.toString()})`;
   if (Number(network.chainId) !== SEPOLIA_CHAIN_ID) {
-    throw new Error("Please switch MetaMask to Sepolia network.");
+    await switchOrAddSepolia();
+    const updatedNetwork = await provider.getNetwork();
+    networkEl.textContent = `${updatedNetwork.name} (${updatedNetwork.chainId.toString()})`;
+    if (Number(updatedNetwork.chainId) !== SEPOLIA_CHAIN_ID) {
+      throw new Error("Please switch MetaMask to Sepolia network.");
+    }
   }
 }
 
@@ -64,11 +114,11 @@ async function connectWallet() {
     await ensureMetaMask();
 
     provider = new ethers.BrowserProvider(window.ethereum);
+    await switchOrAddSepolia();
     await provider.send("eth_requestAccounts", []);
+    await ensureSepolia();
     signer = await provider.getSigner();
     account = await signer.getAddress();
-
-    await ensureSepolia();
 
     contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
     decimals = Number(await contract.decimals());
@@ -77,10 +127,12 @@ async function connectWallet() {
     tokenSymbolEl2.textContent = symbol;
 
     walletEl.textContent = `${shortAddress(account)} (${account})`;
+    setConnectionState(true);
 
     await refreshInfo();
     log("Wallet connected successfully.");
   } catch (error) {
+    setConnectionState(false);
     log(`Connect failed: ${error.message}`);
   }
 }
@@ -149,9 +201,11 @@ if (window.ethereum) {
     log("Account changed. Reconnect wallet.");
     walletEl.textContent = "Not connected";
     myBalanceEl.textContent = "-";
+    setConnectionState(false);
   });
   window.ethereum.on("chainChanged", () => {
     log("Network changed. Reconnect wallet.");
     networkEl.textContent = "Unknown";
+    setConnectionState(false);
   });
 }
