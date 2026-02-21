@@ -21,7 +21,6 @@ const ABI = [
   "function transfer(address to, uint256 amount) returns (bool)",
   "function approve(address spender, uint256 amount) returns (bool)",
   "function allowance(address owner, address spender) view returns (uint256)",
-  "function transferFrom(address from, address to, uint256 amount) returns (bool)",
   "function decimals() view returns (uint8)",
   "function symbol() view returns (string)",
   "event Transfer(address indexed from, address indexed to, uint256 value)",
@@ -34,7 +33,6 @@ const refreshBtn = document.getElementById("refreshBtn");
 const transferBtn = document.getElementById("transferBtn");
 const approveBtn = document.getElementById("approveBtn");
 const checkAllowanceBtn = document.getElementById("checkAllowanceBtn");
-const transferFromBtn = document.getElementById("transferFromBtn");
 const refreshEventsBtn = document.getElementById("refreshEventsBtn");
 const connectionPillEl = document.getElementById("connectionPill");
 const walletEl = document.getElementById("wallet");
@@ -49,9 +47,6 @@ const amountInput = document.getElementById("amountInput");
 const spenderInput = document.getElementById("spenderInput");
 const approveAmountInput = document.getElementById("approveAmountInput");
 const allowanceValueEl = document.getElementById("allowanceValue");
-const fromInput = document.getElementById("fromInput");
-const toInput = document.getElementById("toInput");
-const transferFromAmountInput = document.getElementById("transferFromAmountInput");
 const eventsListEl = document.getElementById("eventsList");
 const logEl = document.getElementById("log");
 const contractAddressEl = document.getElementById("contractAddress");
@@ -302,40 +297,6 @@ async function checkAllowance() {
   }
 }
 
-async function transferFromTokens() {
-  if (!contract) {
-    log("Connect wallet first.");
-    return;
-  }
-  try {
-    await ensureSepolia();
-    const from = fromInput.value.trim();
-    const to = toInput.value.trim();
-    const amount = transferFromAmountInput.value.trim();
-
-    if (!ethers.isAddress(from)) {
-      throw new Error("From address is invalid.");
-    }
-    if (!ethers.isAddress(to)) {
-      throw new Error("To address is invalid.");
-    }
-    if (!amount || Number(amount) <= 0) {
-      throw new Error("Amount must be greater than 0.");
-    }
-
-    const parsedAmount = ethers.parseUnits(amount, decimals);
-    log(`Calling transferFrom(${shortAddress(from)} -> ${shortAddress(to)}) for ${amount} ${symbol}...`);
-    const tx = await contract.transferFrom(from, to, parsedAmount);
-    log(`transferFrom tx submitted: ${tx.hash}`);
-    await tx.wait();
-    log("transferFrom confirmed.");
-    await refreshInfo();
-    await loadRecentEvents();
-  } catch (error) {
-    log(`transferFrom failed: ${error.message}`);
-  }
-}
-
 async function loadRecentEvents() {
   if (!contract || !provider) {
     return;
@@ -376,7 +337,6 @@ refreshBtn.addEventListener("click", refreshInfo);
 transferBtn.addEventListener("click", transferTokens);
 approveBtn.addEventListener("click", approveTokens);
 checkAllowanceBtn.addEventListener("click", checkAllowance);
-transferFromBtn.addEventListener("click", transferFromTokens);
 refreshEventsBtn.addEventListener("click", loadRecentEvents);
 
 if (window.ethereum) {
