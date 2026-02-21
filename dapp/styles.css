@@ -1,9 +1,11 @@
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Poppins:wght@400;500;600;700&display=swap");
+
 :root {
-  --bg: #030712;
+  --bg: #ffffff;
   --panel: #0b1220;
   --border: #2a3347;
-  --text: #e5e7eb;
-  --muted: #94a3b8;
+  --text: #0f172a;
+  --muted: #475569;
   --accent: #60a5fa;
   --accent-strong: #2563eb;
   --good: #22c55e;
@@ -15,9 +17,8 @@
 
 body {
   margin: 0;
-  font-family: Inter, Segoe UI, Arial, sans-serif;
-  background: radial-gradient(1200px 600px at 15% -10%, #172554 0%, transparent 60%),
-    radial-gradient(1000px 500px at 95% 10%, #3b0764 0%, transparent 60%), var(--bg);
+  font-family: "Poppins", Segoe UI, Arial, sans-serif;
+  background: var(--bg);
   color: var(--text);
   min-height: 100vh;
 }
@@ -70,6 +71,7 @@ body {
 .hero h1 {
   margin: 4px 0 8px;
   font-size: clamp(1.6rem, 3vw, 2.3rem);
+  font-family: "Montserrat", "Poppins", Segoe UI, Arial, sans-serif;
 }
 
 .eyebrow {
